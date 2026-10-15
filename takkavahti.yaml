@@ -73,6 +73,8 @@ esp32_camera_web_server:
 # KY-026 liekkisensori
 binary_sensor:
   # DO: komparatorin digitaaliulostulo (kytkimen kynnys KY-026:n potentiometrillä)
+  # AO ei voi tulla mukaan: GPIO32 ei ole ESP32-CAM-modulin headerilla ja
+  # ADC2-kanavia (GPIO0/2/4/12-15) ei voi lukea WiFin ollessa päällä.
   - platform: gpio
     pin:
       number: GPIO14
@@ -81,14 +83,3 @@ binary_sensor:
     filters:
       - delayed_on: 100ms
       - delayed_off: 5s
-
-sensor:
-  # AO: raaka IR-signaali
-  - platform: adc
-    id: ir_raw
-    name: "Takan IR-signaali"
-    pin: GPIO32
-    attenuation: 11db
-    update_interval: 2s
-    unit_of_measurement: "V"
-    accuracy_decimals: 3

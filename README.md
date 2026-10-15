@@ -4,14 +4,16 @@ ESP32-CAM (AI-Thinker) + KY-026 IR-liekkisensori, ESPhome. Vahtii takkaa kameral
 
 ## Kytkentä (KY-026 → ESP32-CAM)
 
+Annoitoitu kaavio: `docs/kytkenta-annotated.png`
+
 | KY-026 | ESP32-CAM | Huom |
 |---|---|---|
-| VCC | 3V3 | KY-026 toimii 3,3 V:llä |
+| VCC | 3.3V | KY-026 toimii 3,3 V:llä. **EI 5V!** |
 | GND | GND | |
 | DO | GPIO14 | digitaali (kynnys modulin potentiometrillä) |
-| AO | GPIO32 | analogi, ADC1_CH4 |
+| AO | — | jätetään kytkemättä: GPIO32 ei ole modulin headerilla ja ADC2-pinneillä ei voi lukea WiFin aikana |
 
-Vapaat ja käytetyt pinnit on valittu niin, että kamera ja PSRAM säilyvät toimivina (EI GPIO0/2/4/5/12-16/18/19/21-27/33-39). GPIO4:ään (valkoinen LED) voi liittää `light`-komponentin jos haluaa valon mukaan.
+Vapaat pinnit tässä modulissa: GPIO12/13/14/15/2/4 (SD-linjat, käytettävissä kun SD-korttia ei ole; GPIO4 = valkoinen LED, GPIO2/12/15 = strapping-pinnejä). GPIO16 kuuluu PSRAMille, GPIO0 kameran XCLK:lle ja GPIO1/3 sarjalle — ei käytetä. GPIO32/33 eivät ole lainkaan headerilla (33 = punainen LED sisäisesti).
 
 ## Käyttö
 
@@ -37,7 +39,7 @@ make logs PORT=/dev/ttyUSB0    # sarjaloki
 Firmware sisältää ESPHome-API:n, joten mitään "Create Device / Import from file" ei tarvita (ne ovat ESPHome Device Builderin omaisia ja tarvitaan vain jos HA:n pitää hallita YAMLia):
 
 1. Laite liittyy wifiin ja on näkyvissä HA:lle mDNS:llä (`takkavahti.local`).
-2. HA: **Settings → Devices & Services → Add Integration → ESPHome** → discovery löytää `takkavahti`-laitteen → **Adopt**. Valmis: entiteetit `Takan kamera`, `Takan liekki`, `Takan IR-signaali`.
+2. HA: **Settings → Devices & Services → Add Integration → ESPHome** → discovery löytää `takkavahti`-laitteen → **Adopt**. Valmis: entiteetit `Takan kamera` ja `Takan liekki`.
 3. Päivitykset tulevat tästä repossa: `make flash` päivittyy ensimmäisen sarja-asennuksen jälkeen OTA:n kautta ilman USB:tä. Jätä Device Builderin "Add existing device" väliin, muuten YAML alkaa elää HA:ssa ja repo käy vanhaksi.
 
 Selainvirta ilman HA:ta: `http://takkavahti.local:8080` (stream) tai :8081 (snapshot).
