@@ -1,5 +1,5 @@
-# LXC: /proc on subset=pid -tyyppinen, joten /proc/stat puuttuu ja psutil.boot_time kaatuu.
-# Palautetaan boot-time: ensin oikea btime, muuten johdettuna /proc/self/stat:sta.
+# LXC: /proc is subset=pid, so /proc/stat is missing and psutil.boot_time crashes.
+# Restore boot_time: real btime first, otherwise derived from /proc/self/stat.
 import os
 import time
 
@@ -14,7 +14,7 @@ def _boot_time():
         except OSError:
             continue
     try:
-        # kenttä 22 (starttime, clk_tk) sulkeiden jälkeen indeksissä 19
+        # field 22 (starttime, clk_tk) is index 19 after the closing parenthesis
         with open("/proc/self/stat") as f:
             ticks = int(f.read().rsplit(")", 1)[1].split()[19])
         return time.time() - ticks / os.sysconf("SC_CLK_TCK")

@@ -13,7 +13,7 @@ config: $(VENV_ESP)
 build: $(VENV_ESP)
 	$(ESP) compile $(YAML)
 
-# make flash [PORT=/dev/ttyUSB0] — kysyy porttia jos ei anneta
+# make flash [PORT=/dev/ttyUSB0]: prompts for the port if not given
 flash: $(VENV_ESP)
 	$(ESP) run $(YAML) $(if $(PORT),-u $(PORT))
 

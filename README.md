@@ -1,47 +1,49 @@
 # Takkavahti
 
-ESP32-CAM (AI-Thinker) + KY-026 IR-liekkisensori, ESPhome. Vahtii takkaa kameralla ja liekkisensorilla; kuvavirta näkyy Home Assistantissa tai suoraan selaimessa portissa 8080.
+Takkavahti is a Finnish word. *Takka* means fireplace and *vahti* means guard or watch, so the name means **fireplace guard**: a device that watches a fireplace.
 
-## Kytkentä (KY-026 → ESP32-CAM)
+ESP32-CAM (AI-Thinker) plus a KY-026 flame sensor, running ESPHome. It streams video to Home Assistant or straight to a browser on port 8080.
 
-Annoitoitu kaavio: `docs/kytkenta-annotated.png`
+## Wiring (KY-026 to ESP32-CAM)
 
-| KY-026 | ESP32-CAM | Huom |
+Annotated diagram: `docs/kytkenta-annotated.png`. The labels inside the image are in Finnish. The same information is in the table below.
+
+| KY-026 | ESP32-CAM | Notes |
 |---|---|---|
-| VCC | 3.3V | KY-026 toimii 3,3 V:llä. **EI 5V!** |
+| VCC | 3.3V | KY-026 runs at 3.3 V. **NOT 5V!** |
 | GND | GND | |
-| DO | GPIO14 | digitaali (kynnys modulin potentiometrillä) |
-| AO | — | jätetään kytkemättä: GPIO32 ei ole modulin headerilla ja ADC2-pinneillä ei voi lukea WiFin aikana |
+| DO | GPIO14 | digital output, threshold set with the module's potentiometer |
+| AO | not connected | GPIO32 is not on the module header, and ADC2 pins cannot be read while WiFi is on |
 
-Vapaat pinnit tässä modulissa: GPIO12/13/14/15/2/4 (SD-linjat, käytettävissä kun SD-korttia ei ole; GPIO4 = valkoinen LED, GPIO2/12/15 = strapping-pinnejä). GPIO16 kuuluu PSRAMille, GPIO0 kameran XCLK:lle ja GPIO1/3 sarjalle — ei käytetä. GPIO32/33 eivät ole lainkaan headerilla (33 = punainen LED sisäisesti).
+Free pins on this module: GPIO12/13/14/15/2/4 (SD lines, usable when there is no SD card; GPIO4 is the white LED, GPIO2/12/15 are strapping pins). GPIO16 belongs to PSRAM, GPIO0 is the camera XCLK, GPIO1/3 are serial. Leave those alone. GPIO32/33 are not on the header at all (33 is the red LED internally).
 
-## Käyttö
+## Usage
 
 ```sh
-make config          # validoi YAML
-make build           # käännä firmware (.esphome/build/)
-make flash PORT=/dev/ttyUSB0   # käännä + lataa
-make logs PORT=/dev/ttyUSB0    # sarjaloki
+make config          # validate the YAML
+make build           # compile firmware (.esphome/build/)
+make flash PORT=/dev/ttyUSB0   # compile + upload
+make logs PORT=/dev/ttyUSB0    # serial log
 ```
 
-`make flash` ilman PORTia esittää porttilistan (kortti pitää olla kiinni tässä koneessa USB-serialilla).
+`make flash` without PORT shows a list of ports. The card must be plugged into this machine over USB serial.
 
-## Ensimmäinen asennus (ESP32-CAM-MB)
+## First install (ESP32-CAM-MB)
 
-1. `git clone https://github.com/janner/takkavahti` omalle koneelle, kopioi `secrets.example.yaml` → `secrets.yaml` ja täytä oikeat arvot.
-2. Asenna esphome (`uv` asentuu: `curl -LsSf https://astral.sh/uv/install.sh | sh`) — `make` asentaa esphomen automaattisesti. Windowsilla ilman makea: `uvx esphome run takkavahti.yaml`.
-3. Kytke ESP32-CAM moduli ESP32-CAM-MB:ään ja MB USB:llä koneeseen. MB hoitaa download-modin automaattisesti (EI IO0-jumperia eikä erillistä FTDI:tä).
-4. `make flash PORT=/dev/ttyUSB0` (vaihda portti; `dmesg | tail` kertoo mikä). Odota "Hard resetting".
-5. KY-026 saa jäädä kiinni latauksen ajaksi: sensori on GPIO14/GPIO32 eikä se vaikuta sarjaan/boot-pinneihin. Kiinnitä langat modulin headerien juotospisteisiin pysyvästi (niin ne pysyvät mukana myös MB-dokissa uudelleenfläshäessä) tai irrota latauksen ajaksi. Vaihtoehto siistiin: ruuviliitäntäinen ESP32-CAM-adapterilevy asennuspaikalle.
+1. `git clone https://github.com/janner/takkavahti`, copy `secrets.example.yaml` to `secrets.yaml` and fill in the real values.
+2. Install esphome. `uv` handles it: `curl -LsSf https://astral.sh/uv/install.sh | sh`. `make` installs esphome automatically. On Windows without make: `uvx esphome run takkavahti.yaml`.
+3. Plug the ESP32-CAM module into the ESP32-CAM-MB board and connect the MB to the computer with USB. The MB handles download mode by itself. No IO0 jumper, no separate FTDI.
+4. `make flash PORT=/dev/ttyUSB0`. Change the port if needed, `dmesg | tail` tells which one. Wait for "Hard resetting".
+5. The KY-026 can stay connected while flashing. The sensor is on GPIO14/GPIO32 and does not affect serial or boot pins. Solder the wires to the module header pads permanently, so they survive re-flashing in the MB dock, or detach them while flashing. A screw terminal ESP32-CAM adapter board is a neat alternative for a fixed install.
 
 ## Home Assistant
 
-Firmware sisältää ESPHome-API:n, joten mitään "Create Device / Import from file" ei tarvita (ne ovat ESPHome Device Builderin omaisia ja tarvitaan vain jos HA:n pitää hallita YAMLia):
+The firmware includes the ESPHome API, so no "Create Device / Import from file" step is needed. Those belong to the ESPHome Device Builder and only matter if HA should manage the YAML.
 
-1. Laite liittyy wifiin ja on näkyvissä HA:lle mDNS:llä (`takkavahti.local`).
-2. HA: **Settings → Devices & Services → Add Integration → ESPHome** → discovery löytää `takkavahti`-laitteen → **Adopt**. Valmis: entiteetit `Takan kamera` ja `Takan liekki`.
-3. Päivitykset tulevat tästä repossa: `make flash` päivittyy ensimmäisen sarja-asennuksen jälkeen OTA:n kautta ilman USB:tä. Jätä Device Builderin "Add existing device" väliin, muuten YAML alkaa elää HA:ssa ja repo käy vanhaksi.
+1. The device joins the wifi and shows up in HA over mDNS (`takkavahti.local`).
+2. In HA: **Settings -> Devices & Services -> Add Integration -> ESPHome**. Discovery finds the `takkavahti` device. Click **Adopt**. Done. The entities are `Takan kamera` (fireplace camera) and `Takan liekki` (fireplace flame). The names stay Finnish so existing entities keep working.
+3. Updates come from this repo. After the first serial install, `make flash` updates over the air without USB. Skip "Add existing device" in Device Builder. Otherwise the YAML starts living in HA and the repo goes stale.
 
-Selainvirta ilman HA:ta: `http://takkavahti.local:8080` (stream) tai :8081 (snapshot).
+Browser stream without HA: `http://takkavahti.local:8080` (stream) or `:8081` (snapshot).
 
-Fallback: jos wifi ei toimi, laite avaa AP:n `takkavahti-fallback` (salasana `secrets.yaml:ssä`), captive portalilla saa wifin asetukset.
+Fallback: if the wifi fails, the device opens an AP called `takkavahti-fallback`. The password is in `secrets.yaml`. The captive portal lets you set the wifi.

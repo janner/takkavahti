@@ -19,7 +19,7 @@ esp32_ble_tracker:
 bluetooth_proxy:
   active: true
 
-# Kamera vaatii PSRAMin (esp32cam-modulilla se on)
+# The camera needs PSRAM (the esp32cam module has it)
 psram:
 
 api:
@@ -37,7 +37,7 @@ wifi:
 
 captive_portal:
 
-# Kamera (AI-Thinker ESP32-CAM, OV2640)
+# Camera (AI-Thinker ESP32-CAM, OV2640)
 esp32_camera:
   name: "Takan kamera"
   external_clock:
@@ -58,25 +58,25 @@ esp32_camera:
   vsync_pin: GPIO25
   href_pin: GPIO23
   pixel_clock_pin: GPIO22
-  # AI-Thinker: GPIO32 = kameran PWDN; ilman tätä anturi jää power-downiin
+  # AI-Thinker: GPIO32 = camera PWDN; without it the sensor stays in power-down
   power_down_pin: GPIO32
   vertical_flip: false
   horizontal_mirror: false
   max_framerate: 5 fps
   idle_framerate: 0.1 fps
 
-# Suoratoisto selaimessa ilman Home Assistantia (portti 8080)
+# Browser streaming without Home Assistant (port 8080)
 esp32_camera_web_server:
   - port: 8080
     mode: stream
   - port: 8081
     mode: snapshot
 
-# KY-026 liekkisensori
+# KY-026 flame sensor
 binary_sensor:
-  # DO: komparatorin digitaaliulostulo (kytkimen kynnys KY-026:n potentiometrillä)
-  # AO ei voi tulla mukaan: GPIO32 ei ole ESP32-CAM-modulin headerilla ja
-  # ADC2-kanavia (GPIO0/2/4/12-15) ei voi lukea WiFin ollessa päällä.
+  # DO: comparator digital output (switch threshold set with the KY-026 potentiometer)
+  # AO cannot be used: GPIO32 is not on the ESP32-CAM module header and
+  # ADC2 pins (GPIO0/2/4/12-15) cannot be read while WiFi is on.
   - platform: gpio
     pin:
       number: GPIO14

@@ -1,1 +1,1 @@
-ESP32-cam-moduli + KY-026 -liekkisensori ESPHome
+ESP32-CAM module + KY-026 flame sensor on ESPHome
