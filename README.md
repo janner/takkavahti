@@ -34,15 +34,17 @@ make logs PORT=/dev/ttyUSB0    # serial log
 2. Install esphome. `uv` handles it: `curl -LsSf https://astral.sh/uv/install.sh | sh`. `make` installs esphome automatically. On Windows without make: `uvx esphome run takkavahti.yaml`.
 3. Plug the ESP32-CAM module into the ESP32-CAM-MB board and connect the MB to the computer with USB. The MB handles download mode by itself. No IO0 jumper, no separate FTDI.
 4. `make flash PORT=/dev/ttyUSB0`. Change the port if needed, `dmesg | tail` tells which one. Wait for "Hard resetting".
-5. The KY-026 can stay connected while flashing. The sensor is on GPIO14/GPIO32 and does not affect serial or boot pins. Solder the wires to the module header pads permanently, so they survive re-flashing in the MB dock, or detach them while flashing. A screw terminal ESP32-CAM adapter board is a neat alternative for a fixed install.
+5. The KY-026 can stay connected while flashing. The sensor sits on GPIO14 and does not affect serial or boot pins. Solder the wires to the module header pads permanently, so they survive re-flashing in the MB dock, or detach them while flashing. A screw terminal ESP32-CAM adapter board is a neat alternative for a fixed install.
 
 ## Home Assistant
 
 The firmware includes the ESPHome API, so no "Create Device / Import from file" step is needed. Those belong to the ESPHome Device Builder and only matter if HA should manage the YAML.
 
 1. The device joins the wifi and shows up in HA over mDNS (`takkavahti.local`).
-2. In HA: **Settings -> Devices & Services -> Add Integration -> ESPHome**. Discovery finds the `takkavahti` device. Click **Adopt**. Done. The entities are `Takan kamera` (fireplace camera) and `Takan liekki` (fireplace flame). The names stay Finnish so existing entities keep working.
-3. Updates come from this repo. After the first serial install, `make flash` updates over the air without USB. Skip "Add existing device" in Device Builder. Otherwise the YAML starts living in HA and the repo goes stale.
+2. In HA: **Settings -> Devices & Services -> Add Integration -> ESPHome**. Discovery finds the `takkavahti` device. Click **Adopt**. Done. The names stay Finnish so existing entities keep working:
+   `Takan kamera`, `Takan liekki`, `Takan valaisin` (flash LED, GPIO4), `Uudelleenkäynnistys` (restart button), `Unitila` (sleep button), `Yhteys` (API status), `WiFi-signaali`, `Käyttöaika`, `Firmware-versio`, `IP-osoite`.
+3. Sleep mode: pressing **Unitila** puts the ESP32 into deep sleep. It wakes when the flame sensor sees a flame (GPIO14 HIGH), reboots and reconnects. It refuses to sleep while the flame is on. The red status LED blinks when there is no wifi/API connection.
+4. Updates come from this repo. After the first serial install, `make flash` updates over the air without USB. Skip "Add existing device" in Device Builder. Otherwise the YAML starts living in HA and the repo goes stale.
 
 Browser stream without HA: `http://takkavahti.local:8080` (stream) or `:8081` (snapshot).
 

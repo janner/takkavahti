@@ -37,6 +37,12 @@ wifi:
 
 captive_portal:
 
+# Red status LED (GPIO33, active low): shows wifi/error state
+status_led:
+  pin:
+    number: GPIO33
+    inverted: true
+
 # Camera (AI-Thinker ESP32-CAM, OV2640)
 esp32_camera:
   name: "Takan kamera"
@@ -72,6 +78,42 @@ esp32_camera_web_server:
   - port: 8081
     mode: snapshot
 
+# Flash LED (GPIO4) as a switchable white light
+output:
+  - platform: gpio
+    id: flash_led
+    pin: GPIO4
+
+light:
+  - platform: binary
+    name: "Takan valaisin"
+    output: flash_led
+    restore_mode: ALWAYS_OFF
+
+# Sleep mode (like the adult device): manual idle sleep, wake on flame (GPIO14 HIGH)
+deep_sleep:
+  id: unitila_sleep
+  wakeup_pin:
+    number: GPIO14
+    allow_other_uses: true
+  wakeup_pin_mode: KEEP_AWAKE
+
+button:
+  - platform: restart
+    name: "Uudelleenkäynnistys"
+  - platform: template
+    name: "Unitila"
+    icon: mdi:power-sleep
+    on_press:
+      - if:
+          condition:
+            binary_sensor.is_off: takan_liekki
+          then:
+            - logger.log: "Unitilaan: heratys liekkisensorista GPIO14"
+            - deep_sleep.enter: unitila_sleep
+          else:
+            - logger.log: "Liekki palaa - ei menna unitilaan"
+
 # KY-026 flame sensor
 binary_sensor:
   # DO: comparator digital output (switch threshold set with the KY-026 potentiometer)
@@ -81,7 +123,29 @@ binary_sensor:
     pin:
       number: GPIO14
       mode: INPUT_PULLUP
+      allow_other_uses: true
     name: "Takan liekki"
+    id: takan_liekki
     filters:
       - delayed_on: 100ms
       - delayed_off: 5s
+
+# Conventional status entities (like the adult device)
+  - platform: status
+    name: "Yhteys"
+
+text_sensor:
+  - platform: version
+    name: "Firmware-versio"
+  - platform: wifi_info
+    ip_address:
+      name: "IP-osoite"
+
+# Diagnostics
+sensor:
+  - platform: wifi_signal
+    name: "WiFi-signaali"
+    update_interval: 60s
+  - platform: uptime
+    name: "Käyttöaika"
+    update_interval: 60s
