@@ -43,7 +43,7 @@ The firmware includes the ESPHome API, so no "Create Device / Import from file" 
 1. The device joins the wifi and shows up in HA over mDNS (`takkavahti.local`).
 2. In HA: **Settings -> Devices & Services -> Add Integration -> ESPHome**. Discovery finds the `takkavahti` device. Click **Adopt**. Done. The names stay Finnish so existing entities keep working:
    `Takan kamera`, `Takan liekki`, `Takan valaisin` (flash LED, GPIO4), `Uudelleenkäynnistys` (restart button), `Unitila` (sleep button), `Yhteys` (API status), `WiFi-signaali`, `Käyttöaika`, `Firmware-versio`, `IP-osoite`.
-3. Sleep mode: pressing **Unitila** puts the ESP32 into deep sleep. It wakes when the flame sensor sees a flame (GPIO14 HIGH), reboots and reconnects. It refuses to sleep while the flame is on. The red status LED blinks when there is no wifi/API connection.
+3. Sleep mode: pressing **Unitila** puts the ESP32 into deep sleep. It wakes when the flame sensor sees a flame (GPIO14 HIGH) or at the latest after 6 hours as a safety net, reboots and reconnects. It refuses to sleep while the flame is on. The red status LED blinks when there is no wifi/API connection.
 4. Updates come from this repo. After the first serial install, `make flash` updates over the air without USB. Skip "Add existing device" in Device Builder. Otherwise the YAML starts living in HA and the repo goes stale.
 
 Browser stream without HA: `http://takkavahti.local:8080` (stream) or `:8081` (snapshot).

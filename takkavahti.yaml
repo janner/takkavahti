@@ -97,6 +97,8 @@ deep_sleep:
     number: GPIO14
     allow_other_uses: true
   wakeup_pin_mode: KEEP_AWAKE
+  # safety net: wake at the latest after 6 h even without a flame
+  sleep_duration: 6h
 
 button:
   - platform: restart

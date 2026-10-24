@@ -21,10 +21,10 @@ build: $(VENV_ESP) fix-penv
 
 # make flash [PORT=/dev/ttyUSB0]: prompts for the port if not given
 flash: $(VENV_ESP) fix-penv
-	$(ESP) run $(YAML) $(if $(PORT),-u $(PORT)) || { $(MAKE) -s fix-penv && $(ESP) run $(YAML) $(if $(PORT),-u $(PORT)); }
+	$(ESP) run $(YAML) $(if $(PORT),--device $(PORT)) || { $(MAKE) -s fix-penv && $(ESP) run $(YAML) $(if $(PORT),--device $(PORT)); }
 
 logs: $(VENV_ESP)
-	$(ESP) logs $(YAML) $(if $(PORT),-u $(PORT))
+	$(ESP) logs $(YAML) $(if $(PORT),--device $(PORT))
 
 clean:
 	rm -rf .esphome .pio
